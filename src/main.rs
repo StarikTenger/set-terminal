@@ -43,7 +43,9 @@ fn main() {
         "Find 3 cards where, for every attribute (number, color, shape, shading),\n\
          all three cards match or all three differ."
     );
-    println!("Type 3 card numbers to claim a Set, '/help' for hints, or 'q' to quit.\n");
+    println!(
+        "Type 3 card numbers to claim a Set, '/help' for hints, or '/finish' (or 'q') to end the game.\n"
+    );
 
     let mut game = Game::new();
 
@@ -63,7 +65,10 @@ fn main() {
         }
         let input = input.trim();
 
-        if input.eq_ignore_ascii_case("q") || input.eq_ignore_ascii_case("quit") {
+        if input.eq_ignore_ascii_case("q")
+            || input.eq_ignore_ascii_case("quit")
+            || input.eq_ignore_ascii_case("/finish")
+        {
             break;
         }
         if input.is_empty() {
