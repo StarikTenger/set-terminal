@@ -92,6 +92,20 @@ pub fn find_any_set(cards: &[Card]) -> Option<(usize, usize, usize)> {
     None
 }
 
+pub fn count_sets(cards: &[Card]) -> usize {
+    let mut count = 0;
+    for i in 0..cards.len() {
+        for j in (i + 1)..cards.len() {
+            for k in (j + 1)..cards.len() {
+                if is_set(&cards[i], &cards[j], &cards[k]) {
+                    count += 1;
+                }
+            }
+        }
+    }
+    count
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

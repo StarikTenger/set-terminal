@@ -43,7 +43,7 @@ fn main() {
         "Find 3 cards where, for every attribute (number, color, shape, shading),\n\
          all three cards match or all three differ."
     );
-    println!("Type 3 card numbers to claim a Set, or 'q' to quit.\n");
+    println!("Type 3 card numbers to claim a Set, '/help' for hints, or 'q' to quit.\n");
 
     let mut game = Game::new();
 
@@ -67,6 +67,15 @@ fn main() {
             break;
         }
         if input.is_empty() {
+            continue;
+        }
+        if input.eq_ignore_ascii_case("/help") {
+            let n = card::count_sets(&game.board);
+            println!(
+                "{}",
+                format!("There {} {} Set(s) on the board.", if n == 1 { "is" } else { "are" }, n).cyan()
+            );
+            println!();
             continue;
         }
 
