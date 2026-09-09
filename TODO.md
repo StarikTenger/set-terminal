@@ -1,0 +1,6 @@
+- round info: round number, number of cards remaining
+- team mode: write 3 numbers and a name of the participant. Team mode should be activated by flag --players followed by string of players (ex: set --players Alice Bob Claire). Name verification: only registered players can be specified when declaring a set. Name cannot start with a number. If not player is specified in team mode it should ask for a name in separate prompt. Names should not be register sensitive. Also it should be enough just to tell the prefix of the name, ex.: 1 3 7 al should add score to Alice. Support command for adding players on the flight: /addplayer David should add a player named David. Show scoreboard in the end of the game. Show the number of sets as number and graphically as diamond symbols.
+- command /finish to terminate the game and show score
+- keep track of time. After each round display time since the beginning of the game and time since the last round
+- configurable color palette
+- /help function -- shows how many sets are on the board
