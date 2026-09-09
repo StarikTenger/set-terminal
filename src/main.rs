@@ -44,7 +44,7 @@ fn main() {
          all three cards match or all three differ."
     );
     println!(
-        "Type 3 card numbers to claim a Set, '/help' for hints, or '/finish' (or 'q') to end the game.\n"
+        "Type 3 card numbers to claim a Set, '/count' for hints, or '/finish' (or 'q') to end the game.\n"
     );
 
     let mut game = Game::new();
@@ -83,7 +83,7 @@ fn main() {
         if input.is_empty() {
             continue;
         }
-        if input.eq_ignore_ascii_case("/help") {
+        if input.eq_ignore_ascii_case("/count") {
             let n = card::count_sets(&game.board);
             println!(
                 "{}",
