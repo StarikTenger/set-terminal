@@ -50,6 +50,15 @@ fn main() {
     let mut game = Game::new();
 
     loop {
+        println!(
+            "{}",
+            format!(
+                "Round {} — {} card(s) left in the deck",
+                game.attempts + 1,
+                game.deck.len()
+            )
+            .dimmed()
+        );
         display::render_board(&game.board);
 
         if game.is_over() {
