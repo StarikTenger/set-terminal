@@ -147,11 +147,12 @@ fn main() {
          all three cards match or all three differ."
     );
     println!(
-        "Type 3 card numbers to claim a Set, '/count' for hints, or '/finish' (or 'q') to end the game.\n"
+        "Type 3 card numbers to claim a Set, '/count' for hints, '/addplayer <name>' to add a \
+         player, or '/finish' (or 'q') to end the game.\n"
     );
 
     let mut roster = players::Players::new();
-    let team_mode = args.players.is_some();
+    let mut team_mode = args.players.is_some();
     if let Some(initial_names) = args.players {
         for name in &initial_names {
             if let Err(msg) = roster.register(name) {
@@ -221,6 +222,33 @@ fn main() {
             );
             println!();
             continue;
+        }
+        {
+            let mut parts = input.splitn(2, char::is_whitespace);
+            if parts.next().is_some_and(|cmd| cmd.eq_ignore_ascii_case("/addplayer")) {
+                let name = parts.next().unwrap_or("").trim();
+                if name.is_empty() {
+                    println!("{}", "Usage: /addplayer <name>".yellow());
+                } else {
+                    match roster.register(name) {
+                        Ok(()) => {
+                            let newly_activated = !team_mode;
+                            team_mode = true;
+                            if newly_activated {
+                                println!(
+                                    "{}",
+                                    format!("Team mode activated. Added player: {name}").cyan().bold()
+                                );
+                            } else {
+                                println!("{}", format!("Added player: {name}").cyan());
+                            }
+                        }
+                        Err(msg) => println!("{}", msg.yellow()),
+                    }
+                }
+                println!();
+                continue;
+            }
         }
 
         let tokens: Vec<&str> = input.split_whitespace().collect();
