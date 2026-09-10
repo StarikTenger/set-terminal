@@ -43,7 +43,29 @@ fn parse_selection(input: &str, board_len: usize) -> Result<[usize; 3], String> 
     Ok(idxs)
 }
 
+fn parse_args() -> display::Palette {
+    let args: Vec<String> = std::env::args().collect();
+    for i in 1..args.len() {
+        if args[i] == "--colors" {
+            let Some(spec) = args.get(i + 1) else {
+                eprintln!("--colors requires a value, e.g. --colors red,green,purple");
+                std::process::exit(1);
+            };
+            return match display::parse_palette(spec) {
+                Ok(palette) => palette,
+                Err(msg) => {
+                    eprintln!("{msg}");
+                    std::process::exit(1);
+                }
+            };
+        }
+    }
+    display::Palette::default()
+}
+
 fn main() {
+    let palette = parse_args();
+
     println!("{}", "=== SET ===".bold());
     println!(
         "Find 3 cards where, for every attribute (number, color, shape, shading),\n\
@@ -67,7 +89,7 @@ fn main() {
             )
             .dimmed()
         );
-        display::render_board(&game.board);
+        display::render_board(&game.board, &palette);
 
         if game.is_over() {
             break;
