@@ -3,9 +3,15 @@ mod display;
 mod game;
 
 use std::io::{self, Write};
+use std::time::{Duration, Instant};
 
 use colored::Colorize;
 use game::Game;
+
+fn format_duration(d: Duration) -> String {
+    let secs = d.as_secs();
+    format!("{:02}:{:02}", secs / 60, secs % 60)
+}
 
 fn parse_selection(input: &str, board_len: usize) -> Result<[usize; 3], String> {
     let nums: Vec<i64> = input
@@ -48,6 +54,8 @@ fn main() {
     );
 
     let mut game = Game::new();
+    let start_time = Instant::now();
+    let mut last_round_time = Instant::now();
 
     loop {
         println!(
@@ -100,6 +108,17 @@ fn main() {
                 } else {
                     println!("{}", "Not a Set — try again.".red());
                 }
+                let now = Instant::now();
+                println!(
+                    "{}",
+                    format!(
+                        "Time since start: {} | since last round: {}",
+                        format_duration(now - start_time),
+                        format_duration(now - last_round_time)
+                    )
+                    .dimmed()
+                );
+                last_round_time = now;
             }
             Err(msg) => println!("{}", msg.yellow()),
         }
