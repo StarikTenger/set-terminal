@@ -14,6 +14,7 @@ cargo run
 
 - Type 3 card numbers (e.g. `1 5 9`) to claim a Set.
 - `/count` — show how many Sets are currently on the board.
+- `/cheat` — reveal every Set currently on the board.
 - `/addplayer <name>` — register a player (activates team mode if it isn't already on).
 - `/finish` or `q` — end the game and show your score.
 

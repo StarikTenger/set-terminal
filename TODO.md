@@ -1,6 +1,10 @@
-- round info: round number, number of cards remaining
-- team mode: write 3 numbers and a name of the participant. Team mode should be activated by flag --players followed by string of players (ex: set --players Alice Bob Claire). Name verification: only registered players can be specified when declaring a set. Name cannot start with a number. If not player is specified in team mode it should ask for a name in separate prompt. Names should not be register sensitive. Also it should be enough just to tell the prefix of the name, ex.: 1 3 7 al should add score to Alice. Support command for adding players on the flight: /addplayer David should add a player named David. Show scoreboard in the end of the game. Show the number of sets as number and graphically as diamond symbols.
-- command /finish to terminate the game and show score
-- keep track of time. After each round display time since the beginning of the game and time since the last round
-- configurable color palette
-- /help function -- shows how many sets are on the board
+- function /cheat -- reveals sets
+- highlight new cards on the table. Card number [n] should be  bold and yellow. Flag to disable (smth like --highlight=false/true)
+- print time info on end of game. Print avg time to find a set
+- don't count rounds with wrong answers. Round ends only when set is found
+- --help, -h flag of executable
+- /help command -- shows in-game commands
+- support an alternative game mode: cards are not added while there are still sets on the board. In this mode, when the set is found and cards removed - do not move cards on board and do not change the enumeration. Add a flag to play in thi mode
+- "clean mode" -- each round terminal is cleared, only current board is shown. Show round info as well (time, cards in deck). Flag to activate the clean mode --clean=true
+- "large mode" -- render cards larger using ascii-art
+- interactive mode -- clean mode + can navigate cards using arrow keys

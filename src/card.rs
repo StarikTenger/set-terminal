@@ -93,17 +93,23 @@ pub fn find_any_set(cards: &[Card]) -> Option<(usize, usize, usize)> {
 }
 
 pub fn count_sets(cards: &[Card]) -> usize {
-    let mut count = 0;
+    find_all_sets(cards).len()
+}
+
+/// Returns the board indices (0-based) of every valid Set currently on the
+/// board, e.g. for `/cheat`.
+pub fn find_all_sets(cards: &[Card]) -> Vec<(usize, usize, usize)> {
+    let mut sets = Vec::new();
     for i in 0..cards.len() {
         for j in (i + 1)..cards.len() {
             for k in (j + 1)..cards.len() {
                 if is_set(&cards[i], &cards[j], &cards[k]) {
-                    count += 1;
+                    sets.push((i, j, k));
                 }
             }
         }
     }
-    count
+    sets
 }
 
 #[cfg(test)]

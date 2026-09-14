@@ -147,8 +147,8 @@ fn main() {
          all three cards match or all three differ."
     );
     println!(
-        "Type 3 card numbers to claim a Set, '/count' for hints, '/addplayer <name>' to add a \
-         player, or '/finish' (or 'q') to end the game.\n"
+        "Type 3 card numbers to claim a Set, '/count' for hints, '/cheat' to reveal all Sets, \
+         '/addplayer <name>' to add a player, or '/finish' (or 'q') to end the game.\n"
     );
 
     let mut roster = players::Players::new();
@@ -218,8 +218,33 @@ fn main() {
             let n = card::count_sets(&game.board);
             println!(
                 "{}",
-                format!("There {} {} Set(s) on the board.", if n == 1 { "is" } else { "are" }, n).cyan()
+                format!("There {} {} Set{} on the board.", 
+                        if n == 1 { "is" } else { "are" }, 
+                        n,
+                        if n == 1 { "" } else { "s" }, 
+                        ).cyan()
             );
+            println!();
+            continue;
+        }
+        if input.eq_ignore_ascii_case("/cheat") {
+            let sets = card::find_all_sets(&game.board);
+            let n = sets.len();
+            if sets.is_empty() {
+                println!("{}", "There are no Sets on the board".cyan());
+            } else {
+            println!(
+                "{}",
+                format!("There {} {} Set{} on the board:", 
+                        if n == 1 { "is" } else { "are" }, 
+                        n,
+                        if n == 1 { "" } else { "s" }, 
+                        ).cyan()
+            );
+                for (i, j, k) in sets {
+                    println!("  {} {} {}", i + 1, j + 1, k + 1);
+                }
+            }
             println!();
             continue;
         }
