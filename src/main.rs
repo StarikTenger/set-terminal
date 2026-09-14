@@ -52,6 +52,20 @@ struct Args {
     highlight: bool,
 }
 
+const USAGE: &str = "\
+Usage: set-game [OPTIONS]
+
+A terminal implementation of the card game Set.
+
+Options:
+  --colors <red>,<green>,<purple>  Remap the terminal colors used for each card
+                                    color. Accepts names (e.g. blue,yellow,cyan)
+                                    or hex codes (e.g. #ff0000,#00ff00,#0000ff).
+  --players [<names...>]           Start in team mode, optionally with an
+                                    initial list of player names.
+  --highlight=<true|false>         Highlight newly dealt cards (default: true).
+  -h, --help                       Print this help and exit.";
+
 fn parse_args() -> Args {
     let raw: Vec<String> = std::env::args().skip(1).collect();
     let mut palette = display::Palette::default();
@@ -61,6 +75,10 @@ fn parse_args() -> Args {
     let mut i = 0;
     while i < raw.len() {
         match raw[i].as_str() {
+            "-h" | "--help" => {
+                println!("{USAGE}");
+                std::process::exit(0);
+            }
             "--colors" => {
                 let Some(spec) = raw.get(i + 1) else {
                     eprintln!("--colors requires a value, e.g. --colors red,green,purple");
@@ -162,8 +180,7 @@ fn main() {
          all three cards match or all three differ."
     );
     println!(
-        "Type 3 card numbers to claim a Set, '/count' for hints, '/cheat' to reveal all Sets, \
-         '/addplayer <name>' to add a player, or '/finish' (or 'q') to end the game.\n"
+        "Type 3 card numbers to claim a Set, or '/help' to see all in-game commands.\n"
     );
 
     let mut roster = players::Players::new();
@@ -193,8 +210,8 @@ fn main() {
 
     let mut game = Game::new();
     let start_time = Instant::now();
+    // Only advances when a Set is actually found — wrong guesses don't end a round.
     let mut last_round_time = Instant::now();
-    let mut last_set_time = Instant::now();
     let mut set_durations: Vec<Duration> = Vec::new();
 
     loop {
@@ -202,7 +219,7 @@ fn main() {
             "{}",
             format!(
                 "Round {} — {} card(s) left in the deck",
-                game.attempts + 1,
+                game.found_sets + 1,
                 game.deck.len()
             )
             .dimmed()
@@ -229,6 +246,16 @@ fn main() {
             break;
         }
         if input.is_empty() {
+            continue;
+        }
+        if input.eq_ignore_ascii_case("/help") {
+            println!("{}", "Commands:".cyan());
+            println!("  <n> <n> <n>       claim a Set, e.g. \"1 5 9\"");
+            println!("  /count            show how many Sets are on the board");
+            println!("  /cheat            reveal every Set on the board");
+            println!("  /addplayer <name> register a player (activates team mode)");
+            println!("  /finish, q        end the game and show your score");
+            println!();
             continue;
         }
         if input.eq_ignore_ascii_case("/count") {
@@ -319,9 +346,6 @@ fn main() {
                     if let Some(idx) = player_idx {
                         roster.add_score(idx);
                     }
-                    let now = Instant::now();
-                    set_durations.push(now - last_set_time);
-                    last_set_time = now;
                 }
 
                 let attribution = player_idx
@@ -342,7 +366,10 @@ fn main() {
                     )
                     .dimmed()
                 );
-                last_round_time = now;
+                if claimed {
+                    set_durations.push(now - last_round_time);
+                    last_round_time = now;
+                }
             }
             Err(msg) => println!("{}", msg.yellow()),
         }

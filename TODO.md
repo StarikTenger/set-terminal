@@ -1,6 +1,3 @@
-- don't count rounds with wrong answers. Round ends only when set is found
-- --help, -h flag of executable
-- /help command -- shows in-game commands
 - support an alternative game mode: cards are not added while there are still sets on the board. In this mode, when the set is found and cards removed - do not move cards on board and do not change the enumeration. Add a flag to play in thi mode
 - "clean mode" -- each round terminal is cleared, only current board is shown. Show round info as well (time, cards in deck). Flag to activate the clean mode --clean=true
 - "large mode" -- render cards larger using ascii-art

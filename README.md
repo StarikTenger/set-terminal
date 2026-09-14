@@ -10,15 +10,18 @@ Find 3 cards where, for every attribute (number, color, shape, shading), all thr
 cargo run
 ```
 
+Run `cargo run -- --help` (or `-h`) to see all command-line options.
+
 ## Play
 
 - Type 3 card numbers (e.g. `1 5 9`) to claim a Set.
+- `/help` — show all in-game commands.
 - `/count` — show how many Sets are currently on the board.
 - `/cheat` — reveal every Set currently on the board.
 - `/addplayer <name>` — register a player (activates team mode if it isn't already on).
 - `/finish` or `q` — end the game and show your score.
 
-Each round shows the round number, cards left in the deck, and time since the game started and since the last round. At the end of the game, the total time and the average (plus fastest/slowest) time to find a Set are shown.
+Each round shows the round number, cards left in the deck, and time since the game started and since the last round. A round only ends (and the round number advances) when a Set is found — wrong guesses don't count as a new round. At the end of the game, the total time and the average (plus fastest/slowest) time to find a Set are shown.
 
 ## Team mode
 
