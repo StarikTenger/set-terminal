@@ -194,6 +194,8 @@ fn main() {
     let mut game = Game::new();
     let start_time = Instant::now();
     let mut last_round_time = Instant::now();
+    let mut last_set_time = Instant::now();
+    let mut set_durations: Vec<Duration> = Vec::new();
 
     loop {
         println!(
@@ -317,6 +319,9 @@ fn main() {
                     if let Some(idx) = player_idx {
                         roster.add_score(idx);
                     }
+                    let now = Instant::now();
+                    set_durations.push(now - last_set_time);
+                    last_set_time = now;
                 }
 
                 let attribution = player_idx
@@ -351,6 +356,24 @@ fn main() {
         game.attempts,
         game.deck.len()
     );
+
+    let total_time = Instant::now() - start_time;
+    println!("{}", format!("Total time: {}", format_duration(total_time)).dimmed());
+    if !set_durations.is_empty() {
+        let avg = set_durations.iter().sum::<Duration>() / set_durations.len() as u32;
+        let fastest = set_durations.iter().min().unwrap();
+        let slowest = set_durations.iter().max().unwrap();
+        println!(
+            "{}",
+            format!(
+                "Average time per Set: {} (fastest: {}, slowest: {})",
+                format_duration(avg),
+                format_duration(*fastest),
+                format_duration(*slowest)
+            )
+            .dimmed()
+        );
+    }
 
     if team_mode {
         println!("\n{}", "=== Scoreboard ===".bold());

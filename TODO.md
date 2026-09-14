@@ -1,4 +1,3 @@
-- print time info on end of game. Print avg time to find a set
 - don't count rounds with wrong answers. Round ends only when set is found
 - --help, -h flag of executable
 - /help command -- shows in-game commands

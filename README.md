@@ -18,7 +18,7 @@ cargo run
 - `/addplayer <name>` — register a player (activates team mode if it isn't already on).
 - `/finish` or `q` — end the game and show your score.
 
-Each round shows the round number, cards left in the deck, and time since the game started and since the last round.
+Each round shows the round number, cards left in the deck, and time since the game started and since the last round. At the end of the game, the total time and the average (plus fastest/slowest) time to find a Set are shown.
 
 ## Team mode
 
