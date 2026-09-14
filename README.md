@@ -36,6 +36,7 @@ cargo run -- --players Alice Bob Claire
 ## Options
 
 - `--colors <red>,<green>,<purple>` — remap the terminal colors used for each card color. Accepts names (e.g. `--colors blue,yellow,cyan`) or hex codes (e.g. `--colors #ff0000,#00ff00,#0000ff`).
+- `--highlight=false` — turn off highlighting of newly dealt cards (bold yellow `[n]` labels). Highlighting is on by default.
 
 ## Test
 

@@ -1,5 +1,3 @@
-- function /cheat -- reveals sets
-- highlight new cards on the table. Card number [n] should be  bold and yellow. Flag to disable (smth like --highlight=false/true)
 - print time info on end of game. Print avg time to find a set
 - don't count rounds with wrong answers. Round ends only when set is found
 - --help, -h flag of executable

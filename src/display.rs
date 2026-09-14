@@ -117,7 +117,7 @@ fn card_content(card: &Card) -> String {
     }
 }
 
-pub fn render_board(cards: &[Card], palette: &Palette) {
+pub fn render_board(cards: &[Card], palette: &Palette, new_indices: &[usize], highlight: bool) {
     for (row_idx, chunk) in cards.chunks(COLUMNS).enumerate() {
         let border_top: String = "┌".to_string() + &"─".repeat(CARD_INNER_WIDTH) + "┐";
         let border_bottom: String = "└".to_string() + &"─".repeat(CARD_INNER_WIDTH) + "┘";
@@ -142,7 +142,12 @@ pub fn render_board(cards: &[Card], palette: &Palette) {
             .enumerate()
             .map(|(col, _)| {
                 let index = row_idx * COLUMNS + col + 1;
-                format!("{:^width$}", format!("[{index}]"), width = CARD_INNER_WIDTH + 2)
+                let label = format!("{:^width$}", format!("[{index}]"), width = CARD_INNER_WIDTH + 2);
+                if highlight && new_indices.contains(&(index - 1)) {
+                    label.bold().yellow().to_string()
+                } else {
+                    label
+                }
             })
             .collect();
         println!("{}", labels.join(" "));

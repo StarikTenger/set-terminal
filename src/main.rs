@@ -49,12 +49,14 @@ struct Args {
     /// `Some(names)` means team mode is active; `names` may be empty if
     /// `--players` was given with no names (a name is then prompted for).
     players: Option<Vec<String>>,
+    highlight: bool,
 }
 
 fn parse_args() -> Args {
     let raw: Vec<String> = std::env::args().skip(1).collect();
     let mut palette = display::Palette::default();
     let mut players: Option<Vec<String>> = None;
+    let mut highlight = true;
 
     let mut i = 0;
     while i < raw.len() {
@@ -80,13 +82,25 @@ fn parse_args() -> Args {
                 players = Some(names);
             }
             other => {
-                eprintln!("Unknown argument: {other}");
-                std::process::exit(1);
+                if let Some(val) = other.strip_prefix("--highlight=") {
+                    highlight = match val {
+                        "true" => true,
+                        "false" => false,
+                        _ => {
+                            eprintln!("--highlight expects true or false, got \"{val}\"");
+                            std::process::exit(1);
+                        }
+                    };
+                    i += 1;
+                } else {
+                    eprintln!("Unknown argument: {other}");
+                    std::process::exit(1);
+                }
             }
         }
     }
 
-    Args { palette, players }
+    Args { palette, players, highlight }
 }
 
 /// Splits off a trailing player-name token from a claim's whitespace tokens.
@@ -140,6 +154,7 @@ fn prompt_for_player_name(roster: &mut players::Players) {
 fn main() {
     let args = parse_args();
     let palette = args.palette;
+    let highlight = args.highlight;
 
     println!("{}", "=== SET ===".bold());
     println!(
@@ -190,7 +205,7 @@ fn main() {
             )
             .dimmed()
         );
-        display::render_board(&game.board, &palette);
+        display::render_board(&game.board, &palette, &game.new_indices, highlight);
 
         if game.is_over() {
             break;

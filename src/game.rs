@@ -10,6 +10,9 @@ pub struct Game {
     pub board: Vec<Card>,
     pub found_sets: u32,
     pub attempts: u32,
+    /// Board indices that were dealt or replaced during the most recent
+    /// round (including the initial deal), for highlighting new cards.
+    pub new_indices: Vec<usize>,
 }
 
 impl Game {
@@ -22,9 +25,11 @@ impl Game {
             board: Vec::new(),
             found_sets: 0,
             attempts: 0,
+            new_indices: Vec::new(),
         };
         game.deal(INITIAL_BOARD_SIZE);
         game.ensure_set_exists();
+        game.new_indices = (0..game.board.len()).collect();
         game
     }
 
@@ -61,6 +66,7 @@ impl Game {
         let mut idxs = [i, j, k];
         idxs.sort_unstable();
 
+        let mut new_indices = Vec::new();
         if self.board.len() > INITIAL_BOARD_SIZE {
             // Board was temporarily expanded because no Set existed at 12
             // cards; shrink it back down instead of dealing more.
@@ -70,7 +76,10 @@ impl Game {
         } else {
             for &idx in idxs.iter().rev() {
                 match self.deck.pop() {
-                    Some(new_card) => self.board[idx] = new_card,
+                    Some(new_card) => {
+                        self.board[idx] = new_card;
+                        new_indices.push(idx);
+                    }
                     None => {
                         self.board.remove(idx);
                     }
@@ -78,7 +87,10 @@ impl Game {
             }
         }
 
+        let before_len = self.board.len();
         self.ensure_set_exists();
+        new_indices.extend(before_len..self.board.len());
+        self.new_indices = new_indices;
         true
     }
 }
