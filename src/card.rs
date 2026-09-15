@@ -79,11 +79,16 @@ pub fn is_set(a: &Card, b: &Card, c: &Card) -> bool {
         && all_same_or_all_different(a.shading, b.shading, c.shading)
 }
 
-pub fn find_any_set(cards: &[Card]) -> Option<(usize, usize, usize)> {
+/// Board slots may be empty (`None`) in game modes that leave gaps instead of
+/// refilling immediately, so Set-finding skips over them.
+pub fn find_any_set(cards: &[Option<Card>]) -> Option<(usize, usize, usize)> {
     for i in 0..cards.len() {
+        let Some(a) = cards[i] else { continue };
         for j in (i + 1)..cards.len() {
+            let Some(b) = cards[j] else { continue };
             for k in (j + 1)..cards.len() {
-                if is_set(&cards[i], &cards[j], &cards[k]) {
+                let Some(c) = cards[k] else { continue };
+                if is_set(&a, &b, &c) {
                     return Some((i, j, k));
                 }
             }
@@ -92,18 +97,21 @@ pub fn find_any_set(cards: &[Card]) -> Option<(usize, usize, usize)> {
     None
 }
 
-pub fn count_sets(cards: &[Card]) -> usize {
+pub fn count_sets(cards: &[Option<Card>]) -> usize {
     find_all_sets(cards).len()
 }
 
 /// Returns the board indices (0-based) of every valid Set currently on the
 /// board, e.g. for `/cheat`.
-pub fn find_all_sets(cards: &[Card]) -> Vec<(usize, usize, usize)> {
+pub fn find_all_sets(cards: &[Option<Card>]) -> Vec<(usize, usize, usize)> {
     let mut sets = Vec::new();
     for i in 0..cards.len() {
+        let Some(a) = cards[i] else { continue };
         for j in (i + 1)..cards.len() {
+            let Some(b) = cards[j] else { continue };
             for k in (j + 1)..cards.len() {
-                if is_set(&cards[i], &cards[j], &cards[k]) {
+                let Some(c) = cards[k] else { continue };
+                if is_set(&a, &b, &c) {
                     sets.push((i, j, k));
                 }
             }

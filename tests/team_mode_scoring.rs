@@ -15,7 +15,7 @@ fn claiming_a_set_in_team_mode_awards_score_to_correct_player() {
     roster.register("Alice").unwrap();
     roster.register("Bob").unwrap();
 
-    let mut game = Game::new();
+    let mut game = Game::new(false);
     let (i, j, k) = card::find_any_set(&game.board).expect("board always has a set at start");
 
     let idx = roster.find_by_prefix("al").unwrap();
@@ -33,13 +33,21 @@ fn failed_claim_does_not_award_score() {
     let mut roster = players::Players::new();
     roster.register("Alice").unwrap();
 
-    let mut game = Game::new();
+    let mut game = Game::new(false);
     // Indices 0,1,2 are only a Set by chance; find two indices that are
     // guaranteed not to form one instead.
     let (i, j, _) = card::find_any_set(&game.board).unwrap();
     // Pick a third index that breaks the Set (any index not in the found triple).
     let bad_k = (0..game.board.len())
-        .find(|&x| x != i && x != j && !card::is_set(&game.board[i], &game.board[j], &game.board[x]))
+        .find(|&x| {
+            x != i
+                && x != j
+                && !card::is_set(
+                    &game.board[i].unwrap(),
+                    &game.board[j].unwrap(),
+                    &game.board[x].unwrap(),
+                )
+        })
         .expect("board of 12 has a non-set completion for some pair");
 
     let idx = roster.find_by_prefix("al").unwrap();

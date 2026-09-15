@@ -117,32 +117,50 @@ fn card_content(card: &Card) -> String {
     }
 }
 
-pub fn render_board(cards: &[Card], palette: &Palette, new_indices: &[usize], highlight: bool) {
+/// Renders the board. A `None` slot (left empty in game modes that don't
+/// refill immediately) is rendered as blank space — no box, no label — to
+/// keep column widths aligned.
+pub fn render_board(cards: &[Option<Card>], palette: &Palette, new_indices: &[usize], highlight: bool) {
+    let box_width = CARD_INNER_WIDTH + 2;
+    let blank = " ".repeat(box_width);
+
     for (row_idx, chunk) in cards.chunks(COLUMNS).enumerate() {
         let border_top: String = "┌".to_string() + &"─".repeat(CARD_INNER_WIDTH) + "┐";
         let border_bottom: String = "└".to_string() + &"─".repeat(CARD_INNER_WIDTH) + "┘";
 
-        let tops: Vec<String> = chunk.iter().map(|_| border_top.clone()).collect();
+        let tops: Vec<String> = chunk
+            .iter()
+            .map(|c| if c.is_some() { border_top.clone() } else { blank.clone() })
+            .collect();
         println!("{}", tops.join(" "));
 
         let mids: Vec<String> = chunk
             .iter()
-            .map(|c| {
-                let content = card_content(c).color(term_color(c.color, palette)).to_string();
-                format!("│{content}│")
+            .map(|c| match c {
+                Some(card) => {
+                    let content = card_content(card).color(term_color(card.color, palette)).to_string();
+                    format!("│{content}│")
+                }
+                None => blank.clone(),
             })
             .collect();
         println!("{}", mids.join(" "));
 
-        let bottoms: Vec<String> = chunk.iter().map(|_| border_bottom.clone()).collect();
+        let bottoms: Vec<String> = chunk
+            .iter()
+            .map(|c| if c.is_some() { border_bottom.clone() } else { blank.clone() })
+            .collect();
         println!("{}", bottoms.join(" "));
 
         let labels: Vec<String> = chunk
             .iter()
             .enumerate()
-            .map(|(col, _)| {
+            .map(|(col, c)| {
+                if c.is_none() {
+                    return blank.clone();
+                }
                 let index = row_idx * COLUMNS + col + 1;
-                let label = format!("{:^width$}", format!("[{index}]"), width = CARD_INNER_WIDTH + 2);
+                let label = format!("{:^width$}", format!("[{index}]"), width = box_width);
                 if highlight && new_indices.contains(&(index - 1)) {
                     label.bold().yellow().to_string()
                 } else {

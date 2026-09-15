@@ -50,6 +50,7 @@ struct Args {
     /// `--players` was given with no names (a name is then prompted for).
     players: Option<Vec<String>>,
     highlight: bool,
+    static_mode: bool,
 }
 
 const USAGE: &str = "\
@@ -64,6 +65,9 @@ Options:
   --players [<names...>]           Start in team mode, optionally with an
                                     initial list of player names.
   --highlight=<true|false>         Highlight newly dealt cards (default: true).
+  --static                         Static mode: claimed cards leave an empty
+                                    gap instead of being replaced, and the
+                                    board only refills once no Set remains.
   -h, --help                       Print this help and exit.";
 
 fn parse_args() -> Args {
@@ -71,6 +75,7 @@ fn parse_args() -> Args {
     let mut palette = display::Palette::default();
     let mut players: Option<Vec<String>> = None;
     let mut highlight = true;
+    let mut static_mode = false;
 
     let mut i = 0;
     while i < raw.len() {
@@ -78,6 +83,10 @@ fn parse_args() -> Args {
             "-h" | "--help" => {
                 println!("{USAGE}");
                 std::process::exit(0);
+            }
+            "--static" => {
+                static_mode = true;
+                i += 1;
             }
             "--colors" => {
                 let Some(spec) = raw.get(i + 1) else {
@@ -118,7 +127,7 @@ fn parse_args() -> Args {
         }
     }
 
-    Args { palette, players, highlight }
+    Args { palette, players, highlight, static_mode }
 }
 
 /// Splits off a trailing player-name token from a claim's whitespace tokens.
@@ -182,6 +191,15 @@ fn main() {
     println!(
         "Type 3 card numbers to claim a Set, or '/help' to see all in-game commands.\n"
     );
+    if args.static_mode {
+        println!(
+            "{}",
+            "Static mode: claimed cards leave a gap instead of being replaced; \
+             the board only refills once no Set remains."
+                .cyan()
+        );
+        println!();
+    }
 
     let mut roster = players::Players::new();
     let mut team_mode = args.players.is_some();
@@ -208,7 +226,7 @@ fn main() {
         println!();
     }
 
-    let mut game = Game::new();
+    let mut game = Game::new(args.static_mode);
     let start_time = Instant::now();
     // Only advances when a Set is actually found — wrong guesses don't end a round.
     let mut last_round_time = Instant::now();
