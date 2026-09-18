@@ -1,3 +1,2 @@
-- "clean mode" -- each round terminal is cleared, only current board is shown. Show round info as well (time, cards in deck). Flag to activate the clean mode --clean=true
 - "large mode" -- render cards larger using ascii-art
 - interactive mode -- clean mode + can navigate cards using arrow keys

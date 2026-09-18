@@ -41,6 +41,7 @@ cargo run -- --players Alice Bob Claire
 - `--colors <red>,<green>,<purple>` — remap the terminal colors used for each card color. Accepts names (e.g. `--colors blue,yellow,cyan`) or hex codes (e.g. `--colors #ff0000,#00ff00,#0000ff`).
 - `--highlight=false` — turn off highlighting of newly dealt cards (bold yellow `[n]` labels). Highlighting is on by default.
 - `--static` — static mode: a claimed Set's cards leave an empty gap instead of being replaced, and card numbers never shift. The board only refills (every gap at once) once no Set remains among the cards still in play.
+- `--clean=true` — clean mode: clear the terminal each round and show only the board, round info, and the result of the last guess. Off by default.
 
 ## Test
 

@@ -51,6 +51,7 @@ struct Args {
     players: Option<Vec<String>>,
     highlight: bool,
     static_mode: bool,
+    clean: bool,
 }
 
 const USAGE: &str = "\
@@ -68,6 +69,9 @@ Options:
   --static                         Static mode: claimed cards leave an empty
                                     gap instead of being replaced, and the
                                     board only refills once no Set remains.
+  --clean=<true|false>              Clean mode: clear the terminal each round
+                                    and show only the board, round info, and
+                                    the last result (default: false).
   -h, --help                       Print this help and exit.";
 
 fn parse_args() -> Args {
@@ -76,6 +80,7 @@ fn parse_args() -> Args {
     let mut players: Option<Vec<String>> = None;
     let mut highlight = true;
     let mut static_mode = false;
+    let mut clean = false;
 
     let mut i = 0;
     while i < raw.len() {
@@ -119,6 +124,16 @@ fn parse_args() -> Args {
                         }
                     };
                     i += 1;
+                } else if let Some(val) = other.strip_prefix("--clean=") {
+                    clean = match val {
+                        "true" => true,
+                        "false" => false,
+                        _ => {
+                            eprintln!("--clean expects true or false, got \"{val}\"");
+                            std::process::exit(1);
+                        }
+                    };
+                    i += 1;
                 } else {
                     eprintln!("Unknown argument: {other}");
                     std::process::exit(1);
@@ -127,7 +142,7 @@ fn parse_args() -> Args {
         }
     }
 
-    Args { palette, players, highlight, static_mode }
+    Args { palette, players, highlight, static_mode, clean }
 }
 
 /// Splits off a trailing player-name token from a claim's whitespace tokens.
@@ -182,6 +197,7 @@ fn main() {
     let args = parse_args();
     let palette = args.palette;
     let highlight = args.highlight;
+    let clean = args.clean;
 
     println!("{}", "=== SET ===".bold());
     println!(
@@ -231,8 +247,14 @@ fn main() {
     // Only advances when a Set is actually found — wrong guesses don't end a round.
     let mut last_round_time = Instant::now();
     let mut set_durations: Vec<Duration> = Vec::new();
+    // In clean mode, the result of the previous guess is redisplayed after
+    // each clear so feedback isn't lost along with the rest of the scrollback.
+    let mut last_result: Option<String> = None;
 
     loop {
+        if clean {
+            print!("\x1B[2J\x1B[H");
+        }
         println!(
             "{}",
             format!(
@@ -242,6 +264,12 @@ fn main() {
             )
             .dimmed()
         );
+        if clean {
+            if let Some(msg) = &last_result {
+                println!("{msg}");
+            }
+            println!();
+        }
         display::render_board(&game.board, &palette, &game.new_indices, highlight);
 
         if game.is_over() {
@@ -267,73 +295,83 @@ fn main() {
             continue;
         }
         if input.eq_ignore_ascii_case("/help") {
-            println!("{}", "Commands:".cyan());
-            println!("  <n> <n> <n>       claim a Set, e.g. \"1 5 9\"");
-            println!("  /count            show how many Sets are on the board");
-            println!("  /cheat            reveal every Set on the board");
-            println!("  /addplayer <name> register a player (activates team mode)");
-            println!("  /finish, q        end the game and show your score");
+            let msg = [
+                "Commands:".cyan().to_string(),
+                "  <n> <n> <n>       claim a Set, e.g. \"1 5 9\"".to_string(),
+                "  /count            show how many Sets are on the board".to_string(),
+                "  /cheat            reveal every Set on the board".to_string(),
+                "  /addplayer <name> register a player (activates team mode)".to_string(),
+                "  /finish, q        end the game and show your score".to_string(),
+            ]
+            .join("\n");
+            println!("{msg}");
             println!();
+            last_result = Some(msg);
             continue;
         }
         if input.eq_ignore_ascii_case("/count") {
             let n = card::count_sets(&game.board);
-            println!(
-                "{}",
-                format!("There {} {} Set{} on the board.", 
-                        if n == 1 { "is" } else { "are" }, 
-                        n,
-                        if n == 1 { "" } else { "s" }, 
-                        ).cyan()
-            );
+            let msg = format!(
+                "There {} {} Set{} on the board.",
+                if n == 1 { "is" } else { "are" },
+                n,
+                if n == 1 { "" } else { "s" },
+            )
+            .cyan()
+            .to_string();
+            println!("{msg}");
             println!();
+            last_result = Some(msg);
             continue;
         }
         if input.eq_ignore_ascii_case("/cheat") {
             let sets = card::find_all_sets(&game.board);
             let n = sets.len();
-            if sets.is_empty() {
-                println!("{}", "There are no Sets on the board".cyan());
+            let msg = if sets.is_empty() {
+                "There are no Sets on the board".cyan().to_string()
             } else {
-            println!(
-                "{}",
-                format!("There {} {} Set{} on the board:", 
-                        if n == 1 { "is" } else { "are" }, 
-                        n,
-                        if n == 1 { "" } else { "s" }, 
-                        ).cyan()
-            );
+                let header = format!(
+                    "There {} {} Set{} on the board:",
+                    if n == 1 { "is" } else { "are" },
+                    n,
+                    if n == 1 { "" } else { "s" },
+                )
+                .cyan()
+                .to_string();
+                let mut lines = vec![header];
                 for (i, j, k) in sets {
-                    println!("  {} {} {}", i + 1, j + 1, k + 1);
+                    lines.push(format!("  {} {} {}", i + 1, j + 1, k + 1));
                 }
-            }
+                lines.join("\n")
+            };
+            println!("{msg}");
             println!();
+            last_result = Some(msg);
             continue;
         }
         {
             let mut parts = input.splitn(2, char::is_whitespace);
             if parts.next().is_some_and(|cmd| cmd.eq_ignore_ascii_case("/addplayer")) {
                 let name = parts.next().unwrap_or("").trim();
-                if name.is_empty() {
-                    println!("{}", "Usage: /addplayer <name>".yellow());
+                let msg = if name.is_empty() {
+                    "Usage: /addplayer <name>".yellow().to_string()
                 } else {
                     match roster.register(name) {
                         Ok(()) => {
                             let newly_activated = !team_mode;
                             team_mode = true;
                             if newly_activated {
-                                println!(
-                                    "{}",
-                                    format!("Team mode activated. Added player: {name}").cyan().bold()
-                                );
+                                format!("Team mode activated. Added player: {name}").cyan().bold().to_string()
                             } else {
-                                println!("{}", format!("Added player: {name}").cyan());
+                                format!("Added player: {name}").cyan().to_string()
                             }
                         }
-                        Err(msg) => println!("{}", msg.yellow()),
+                        Err(msg) => msg.yellow().to_string(),
                     }
-                }
+                };
+                println!("{msg}");
                 println!();
+                last_result = Some(msg);
                 continue;
             }
         }
@@ -348,8 +386,10 @@ fn main() {
                         Some(name) => match roster.find_by_prefix(name) {
                             Ok(idx) => idx,
                             Err(msg) => {
-                                println!("{}", msg.yellow());
+                                let msg = msg.yellow().to_string();
+                                println!("{msg}");
                                 println!();
+                                last_result = Some(msg);
                                 continue;
                             }
                         },
@@ -369,27 +409,32 @@ fn main() {
                 let attribution = player_idx
                     .map(|idx| format!(" ({})", roster.name(idx)))
                     .unwrap_or_default();
-                if claimed {
-                    println!("{}", format!("Nice, that's a Set!{attribution}").green().bold());
+                let result_line = if claimed {
+                    format!("Nice, that's a Set!{attribution}").green().bold().to_string()
                 } else {
-                    println!("{}", format!("Not a Set — try again.{attribution}").red());
-                }
+                    format!("Not a Set — try again.{attribution}").red().to_string()
+                };
+                println!("{result_line}");
                 let now = Instant::now();
-                println!(
-                    "{}",
-                    format!(
-                        "Time since start: {} | since last round: {}",
-                        format_duration(now - start_time),
-                        format_duration(now - last_round_time)
-                    )
-                    .dimmed()
-                );
+                let time_line = format!(
+                    "Time since start: {} | since last round: {}",
+                    format_duration(now - start_time),
+                    format_duration(now - last_round_time)
+                )
+                .dimmed()
+                .to_string();
+                println!("{time_line}");
+                last_result = Some(format!("{result_line}\n{time_line}"));
                 if claimed {
                     set_durations.push(now - last_round_time);
                     last_round_time = now;
                 }
             }
-            Err(msg) => println!("{}", msg.yellow()),
+            Err(msg) => {
+                let msg = msg.yellow().to_string();
+                println!("{msg}");
+                last_result = Some(msg);
+            }
         }
         println!();
     }
